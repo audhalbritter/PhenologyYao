@@ -22,7 +22,7 @@ pheno <- pheno %>%
   mutate(doy = yday(date))
 
 # Code to get species names !!!!
-# Calc DOY
+
 
 
 # Replace wrong names
