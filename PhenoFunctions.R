@@ -14,7 +14,7 @@ ReadExcelSheets <- function(sheet){
   # loop over each plot and extract data, plus metainfo
   dat2 <- plyr::adply(metainfo2, 1, function(i){
     x <- dat[(i$start + 2):i$end, ] # extract phenology data
-    colnames(x) <- c("species", "Notes", paste(rep(c("b", "f", "s", "r"), 9), c(1:36), sep = ".")) # give new names
+    colnames(x) <- c("sp", "Notes", paste(rep(c("b", "f", "s", "r"), 9), c(1:36), sep = ".")) # give new names
     kk <- dat$X1[i$start] # metainfo
     # use regular expression to extract metainfo
     x$plot <- gsub("Site *. *(\\S*).*", "\\1", kk)
