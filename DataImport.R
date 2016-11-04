@@ -17,12 +17,32 @@ pheno.dat <- plyr::ldply(1:17, ReadExcelSheets)
 pheno <- CalcSums(pheno.dat)
 
 pheno <- pheno %>% 
-  select(species, plot, date, week, nr.b, nr.f, nr.s, nr.r) %>% 
-  filter(!is.na(species)) %>% 
+  select(sp, plot, date, week, nr.b, nr.f, nr.s, nr.r) %>% 
+  filter(!is.na(sp)) %>% 
   mutate(doy = yday(date))
 
-# Code to get species names !!!!
 
+# split authority from name
+spNames <- strsplit(pheno$sp, " ")
+nameAuthority <-plyr::ldply(spNames, function(x){
+  if(any(grepl("var.", x, fixed = TRUE))){
+    speciesName <- paste(x[1:4], collapse = " ")
+    authority <- paste(x[-(1:4)], collapse = " ")
+  } else {
+    speciesName <- paste(x[1:2], collapse = " ")  
+    authority <- paste(x[-(1:2)], collapse = " ")
+  }
+  if(is.na(authority)) authority <- ""
+  data.frame(speciesName, authority, stringsAsFactors = FALSE)
+})
+
+pheno$species <- paste(sapply(spNames, function(x) x[1]), sapply(spNames, function(x) x[2]), sep = " ")
+head(pheno)
+unique(pheno$species)
+
+# check these species
+# 景天叶Gentiana crassula"
+# "紫晶Primula amethystina"
 
 
 # Replace wrong names
@@ -41,6 +61,7 @@ pheno.dat <- pheno.dat %>%
 pheno %>% 
   gather(key = pheno.stage, value = value, nr.b, nr.f, nr.s, nr.r) %>% 
   filter(plot == "SH-4") %>% 
+  #filter(species == "Oxygraphis glacialis") %>% 
   group_by(species, pheno.stage) %>% 
   ggplot(aes(x = doy, y = value, color = pheno.stage)) +
   geom_line() +
