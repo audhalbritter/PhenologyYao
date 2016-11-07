@@ -19,7 +19,8 @@ pheno <- CalcSums(pheno.dat)
 pheno <- pheno %>% 
   select(sp, plot, date, week, nr.b, nr.f, nr.s, nr.r) %>% 
   filter(!is.na(sp)) %>% 
-  mutate(doy = yday(date))
+  mutate(doy = yday(date)) %>% 
+  mutate(plot = plyr::mapvalues(plot, c("SH-9",  "SH-1",  "SH-6",  "SH-2",  "SH-3",  "SH-4",  "GC-1",  "GC-2",  "GC-5",  "GC-10", "GC-9",  "GC-8",  "GC-7"), c(...)))
 
 
 # split authority from name
@@ -45,16 +46,6 @@ unique(pheno$species)
 # "紫晶Primula amethystina"
 
 
-# Replace wrong names
-pheno.dat <- pheno.dat %>%
-  mutate(species=replace(species,species=="Pol.leu","Pot.leu"))%>%
-  mutate(species=replace(species,species=="Cal.pal","Oxy.gla"))%>%
-  mutate(species=replace(species,species=="Cha.tha","Jun.leu"))%>%
-  mutate(species=replace(species,species=="Sal.bra","Sal.sou")) %>% 
-  mutate(species=replace(species,species=="Agr.ner","Agr.sp")) %>% 
-  mutate(species=replace(species,species=="Jun.all","Jun.leu")) %>% 
-  mutate(species=replace(species,species=="Gal.spa","Gal.hof"))
-         
 
 
 # Check data, make figures for pheno.stages
@@ -102,8 +93,6 @@ pheno.long <- pheno.long %>%
   mutate(pheno.unit = ifelse(pheno.var == "duration", "days", ifelse(pheno.var == "peak" & pheno.stage %in% c("bf", "fs", "sr"), "days", "doy"))) %>% # create variable pheno.unit, doy: b,f,s,r, days: duration, bf, fs, sr
   filter(!is.na(value)) # remove empty rows
 
-# merge site, block and treatment
-pheno.long[,(ncol(pheno.long)+1):(ncol(pheno.long)+4)] <- pheno.dat[match(pheno.long$turfID,pheno.dat$turfID),c("origSite", "destSite", "block", "treatment")]
 
 # Rename variables and order
 pheno.long <- pheno.long %>%
