@@ -25,11 +25,12 @@ dat <- pheno.long %>%
   mutate(treatment = substring(plot, 1, 2)) %>% 
   filter(pheno.stage == "f", pheno.var == "peak")
 
+
 # fit simple regression/anova
 fit.lm <- lm(value ~ treatment, data = dat)
 anova(fit.lm)
 hist(dat$value)
-par(mfrow=c(2,2))
+par(mfrow=c(1,1))
 plot(fit.lm)
 
 
@@ -42,6 +43,8 @@ hist(log(dat$value))
 # GLM for count data
 fit.glm <- glm(value ~ treatment, data = dat, family = "poisson")
 summary(fit.glm)
+plot(fit.glm)
+
 
 
 # Mixed Effects Model including block
@@ -49,11 +52,11 @@ fit.glmm <- glmer(value ~ treatment + (1|block), data = dat, family = "poisson")
 summary(fit.glmm)
 
 # Mixed Effects Model including species
-fit.glmm <- glmer(value ~ treatment + (1|block) + (1|species), data = dat, family = "poisson")
+fit.glmm <- glmer(value ~ treatment + species + (1|block), data = dat, family = "poisson")
 summary(fit.glmm)
 plot(fit.glmm)
 
-# backtrasnform the data
+# backtransform the data
 newdat <- expand.grid(
   treatment=c("GC", "SH")
   , value = 0
@@ -62,12 +65,24 @@ mm <- model.matrix(terms(fit.glmm), newdat)
 newdat$value <- predict(fit.glmm, newdat, re.form = NA, type="response")
 
 ### Test overdispersion
-disp <- function(mod,data){
-  rdev <- sum(residuals(mod)^2)
-  mdf <- length(fixef(mod))
-  rdf <- nrow(data)-mdf
-  rdev/rdf}
-disp(fit.glmm, dat)
+# compare the residual deviance to the residual degrees of freedom
+# these are assumed to be the same.
+
+overdisp_fun <- function(model) {
+  ## number of variance parameters in 
+  ##   an n-by-n variance-covariance matrix
+  vpars <- function(m) {
+    nrow(m)*(nrow(m)+1)/2
+  }
+  model.df <- sum(sapply(VarCorr(model),vpars))+length(fixef(model))
+  rdf <- nrow(model.frame(model))-model.df
+  rp <- residuals(model,type="pearson")
+  Pearson.chisq <- sum(rp^2)
+  prat <- Pearson.chisq/rdf
+  pval <- pchisq(Pearson.chisq, df=rdf, lower.tail=FALSE)
+  c(chisq=Pearson.chisq,ratio=prat,rdf=rdf,p=pval)
+}
+overdisp_fun(fit.glmm)
 
 
 #function for QAICc. NB, phi is the scaling parameter from the quasi-family model. If using e.g. a poisson family, phi=1 and QAICc returns AICc, or AIC if QAICc=FALSE.
