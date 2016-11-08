@@ -19,7 +19,8 @@ pheno <- CalcSums(pheno.dat)
 pheno <- pheno %>% 
   select(sp, plot, date, week, nr.b, nr.f, nr.s, nr.r) %>% 
   filter(!is.na(sp)) %>% 
-  mutate(doy = yday(date))
+  mutate(doy = yday(date)) %>% 
+  mutate(plot = plyr::mapvalues(plot, c("SH-9",  "SH-1",  "SH-6",  "SH-2",  "SH-3",  "SH-4",  "GC-1",  "GC-2",  "GC-5",  "GC-10", "GC-9",  "GC-8",  "GC-7"), c(...)))
 
 
 # split authority from name
@@ -45,16 +46,6 @@ unique(pheno$species)
 # "紫晶Primula amethystina"
 
 
-# Replace wrong names
-pheno.dat <- pheno.dat %>%
-  mutate(species=replace(species,species=="Pol.leu","Pot.leu"))%>%
-  mutate(species=replace(species,species=="Cal.pal","Oxy.gla"))%>%
-  mutate(species=replace(species,species=="Cha.tha","Jun.leu"))%>%
-  mutate(species=replace(species,species=="Sal.bra","Sal.sou")) %>% 
-  mutate(species=replace(species,species=="Agr.ner","Agr.sp")) %>% 
-  mutate(species=replace(species,species=="Jun.all","Jun.leu")) %>% 
-  mutate(species=replace(species,species=="Gal.spa","Gal.hof"))
-         
 
 
 # Check data, make figures for pheno.stages
@@ -72,9 +63,8 @@ pheno %>%
 #### CALCULATE FIRST, PEAK, END AND DURATION ####
 ### MAKE LONG DATA SET ###
 pheno.long <- pheno %>%
-  select(turfID, species, date, doy, origSite, destSite, block, treatment, nr.b, nr.f, nr.s, nr.r) %>%
   gather(key = pheno.stage, value = value, nr.b, nr.f, nr.s, nr.r) %>% # make variable pheno.stage
-  group_by(turfID, species, pheno.stage) %>%  # group by turfID, species and phenological stage to calculate first, end etc for each stage
+  group_by(plot, species, pheno.stage) %>%  # group by turfID, species and phenological stage to calculate first, end etc for each stage
   mutate(minDoy = min(doy, na.rm = TRUE)) %>% # calculate min doy
   group_by(minDoy, add = TRUE) %>% # add variable but remember the previous groups
   filter(value > 0) %>%
@@ -87,31 +77,27 @@ pheno.long <- pheno %>%
   mutate(pheno.stage = substring(pheno.stage, nchar(pheno.stage), nchar(pheno.stage))) %>%  # take last letter from pheno.stage
   mutate(pheno.stage = factor(pheno.stage, levels = c("b", "f", "s", "r"))) %>% 
   mutate(duration = end - (first-1)) %>% # calculate duration
-  gather(key = pheno.var, value = value, -turfID, -species, -pheno.stage) %>%  # create pheno.var and gather 4 variable into 1 column
+  gather(key = pheno.var, value = value, -plot, -species, -pheno.stage) %>%  # create pheno.var and gather 4 variable into 1 column
   mutate(pheno.var = factor(pheno.var, levels = c("first", "peak", "end", "duration")))
 head(pheno.long)
+
+
+
 
 #### CALCULATE DAYS BETWEEN FIRST BUD AND FLOWER, FLOWER AND SEED ETC (PHENO.STAGES IN DAYS) ####
 pheno.long <- pheno.long %>% 
   spread(key = pheno.stage, value = value) %>% 
   # calculate difference in days between bud-flower and flower-seed
-  mutate(bf = ifelse(pheno.var == "first", f-b, NA), fs = ifelse(pheno.var == "first", s-f, NA), sr = ifelse(pheno.var == "first", r-s, NA)) %>%
+  mutate(bf = ifelse(pheno.var == "peak", f-b, NA), fs = ifelse(pheno.var == "peak", s-f, NA), sr = ifelse(pheno.var == "peak", r-s, NA)) %>%
   gather(key = pheno.stage, value = value, b, f, s, r, bf, fs, sr) %>%
-  mutate(pheno.unit = ifelse(pheno.var == "duration", "days", ifelse(pheno.var == "first" & pheno.stage %in% c("bf", "fs", "sr"), "days", "doy"))) %>% # create variable pheno.unit, doy: b,f,s,r, days: duration, bf, fs, sr
+  mutate(pheno.unit = ifelse(pheno.var == "duration", "days", ifelse(pheno.var == "peak" & pheno.stage %in% c("bf", "fs", "sr"), "days", "doy"))) %>% # create variable pheno.unit, doy: b,f,s,r, days: duration, bf, fs, sr
   filter(!is.na(value)) # remove empty rows
 
-# merge site, block and treatment
-pheno.long[,(ncol(pheno.long)+1):(ncol(pheno.long)+4)] <- pheno.dat[match(pheno.long$turfID,pheno.dat$turfID),c("origSite", "destSite", "block", "treatment")]
 
 # Rename variables and order
 pheno.long <- pheno.long %>%
-  mutate(destSite = factor(destSite, levels =c("H", "A", "M"))) %>% 
-  mutate(origSite = factor(origSite, levels =c("H", "A", "M"))) %>% 
-  mutate(treatment = plyr::mapvalues(treatment, c("OTC", "C", "O", "1", "2"), c("OTC", "Control", "Local", "Warm", "Cold"))) %>% 
-  mutate(treatment = factor(treatment, levels=c("Control", "OTC", "Warm", "Cold", "Local"))) %>% 
-  # make new variable combining Local and Control
-  mutate(newtreat = plyr::mapvalues(treatment, c("OTC", "Control", "Local", "Warm", "Cold"), c("OTC", "Control", "Control", "Warm", "Cold"))) %>% 
-  mutate(newtreat = factor(newtreat, levels=c("Control", "OTC", "Warm", "Cold")))
+  mutate(block = substring(plot, nchar(plot), nchar(plot))) %>% 
+  mutate(treatment = substring(plot, 1, 2)) %>%
 
 save(pheno.long, file = "PhenoLong.RData")
 
