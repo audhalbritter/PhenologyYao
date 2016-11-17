@@ -98,74 +98,17 @@ pheno.long <- pheno %>%
   mutate(treatment = ifelse(plot %in% c("1", "2" ,"3", "4", "5", "6"), "Snow", "Control")) 
 
 
-ggplot(pheno.long, aes(x = treatment, y = value)) +
-  geom_boxplot() +
-  facet_grid(pheno.stage ~ pheno.var)
-
-save(pheno.long, file = "PhenoLong.RData")
-
-  # Trait data
-trait <- read_excel("SpeciesTraits2016_China.xlsx", col_names = TRUE)
-head(trait)
-
-# define flowering time
-# early: <= 4 month until June
-# mid: <= 4 month and between April and August
-# late: <= 4 month from July
-# late: >= 4 month
-trait <- trait %>% mutate(flTime = 
-                   ifelse(floweringTime %in% c("Apr-Jun", "Apr-May", "Jun", "May-Jun"), "early",
-                                 ifelse(floweringTime %in% c("Jul-Aug", "Apr-Jul", "Jul", "Jun-Jul", "May-Jul", "May-Jul-(Aug)", "summer", "Jun-Aug", "Jun-Sep"), "mid", 
-                                        ifelse(floweringTime %in% c("Aug-Nov", "Aug-Oct", "Aug-Sep", "Jul-Sep", "Jul-Oct"), "late", "always")))
-                 ) %>%
-  mutate(flTime = ifelse(sp %in% c("Car.sp.black","Car.sp.black.big","Car.sp.middle","Car.sp.yellow","Fes.sp.big","Kob.sp.sigan","Kob.sp.small","Kob.sp.yellow"), "early", flTime))
-
-
 # check species
 setdiff(pheno.long$species, trait$sp)
 setdiff(trait$sp, pheno.long$species)
 
+# Merge trait data
 pheno.long <- pheno.long %>% left_join(trait, by = c("species" = "sp"))
 
 
-# Making Figures for each species
-name <- pheno.long %>% 
-  filter(treatment %in% c("OTC", "Control")) %>% 
-  filter(origSite == "H") %>% 
-  #filter(functionalGroup == "forb") %>% 
-  #filter(flTime == "early") %>%
-  filter(pheno.stage %in% c("f"), pheno.var %in% c("first", "duration")) %>% 
-  #filter(pheno.stage %in% c("bf", "fs", "sr")) %>% 
-  #filter(pheno.var %in% "duration") %>% 
-  group_by(species, treatment, pheno.var) %>% 
-  summarise(mean = mean(value)) %>% 
-  spread(key = treatment, value = mean) %>% 
-  na.omit() %>% 
-  gather(key = treatment, value = value, -species, -pheno.var) %>% 
-  spread(key = pheno.var, value = value) %>% 
-  ggplot(aes(x = first, y = species, color = treatment)) + geom_point() +
-  geom_segment(aes(x=first, xend=(first+duration), y=species, yend=species),size=1)
 
-name + theme_grey(base_size = 20) + theme(legend.title=element_blank()) + ggtitle("H site first flowering")
+save(pheno.long, file = "PhenoLong.RData")
 
-
-PhenologicalStages <- pheno.long %>% 
-    filter(treatment %in% c("OTC", "Control","Warm","Local")) %>% 
-    filter(origSite %in% c("H", "A")) %>% 
-    filter(functionalGroup %in% c("forb", "graminoid")) %>% 
-    #filter(flTime == c("early", "late")) %>%
-    #filter(pheno.stage %in% c("b", "f", "s"), pheno.var == "first") %>% 
-    #filter(pheno.stage %in% c("bf", "fs", "sr")) %>% 
-    filter(pheno.var %in% "duration") %>% 
-    #group_by(species, treatment) %>% 
-    #summarise(mean = mean(value)) %>% 
-    ggplot(aes(x = treatment, y = value, color = functionalGroup)) +
-    geom_boxplot() +
-    facet_grid(origSite~pheno.stage)
-  
-PhenologicalStages + theme_grey(base_size = 20) + theme(legend.title=element_blank()) + ggtitle("DOY")
-PhenologicalDuration + theme_grey(base_size = 20) + theme(legend.title=element_blank()) + ggtitle("Days")
-PhenologicalFirstEnd + theme_grey(base_size = 20) + theme(legend.title=element_blank()) + ggtitle("Days")
 
 
 # Climate data
