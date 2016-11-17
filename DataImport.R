@@ -20,7 +20,8 @@ pheno <- pheno %>%
   select(sp, plot, date, week, nr.b, nr.f, nr.s, nr.r) %>% 
   filter(!is.na(sp)) %>% 
   mutate(doy = yday(date)) %>% 
-  mutate(plot = plyr::mapvalues(plot, c("SH-9",  "SH-1",  "SH-6",  "SH-2",  "SH-3",  "SH-4",  "GC-1",  "GC-2",  "GC-5",  "GC-10", "GC-9",  "GC-8",  "GC-7"), c(...)))
+  mutate(plot = plyr::mapvalues(plot, c("SH-9",  "SH-1",  "SH-6",  "SH-2",  "SH-3",  "SH-4",  "GC-1",  "GC-2",  "GC-5",  "GC-10", "GC-9",  "GC-8",  "GC-7"), c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13")))
+
 
 
 # split authority from name
@@ -48,7 +49,7 @@ unique(pheno$species)
 
 
 
-# Check data, make figures for pheno.stages
+# Check data, make figures for pheno.stages 
 pheno %>% 
   gather(key = pheno.stage, value = value, nr.b, nr.f, nr.s, nr.r) %>% 
   filter(plot == "SH-4") %>% 
@@ -75,7 +76,6 @@ pheno.long <- pheno %>%
   #mutate_each(funs(as.numeric), first, peak, end) %>% # make variables numeric (probably not necessary)
   # make the data nice, rename variables and order them
   mutate(pheno.stage = substring(pheno.stage, nchar(pheno.stage), nchar(pheno.stage))) %>%  # take last letter from pheno.stage
-  mutate(pheno.stage = factor(pheno.stage, levels = c("b", "f", "s", "r"))) %>% 
   mutate(duration = end - (first-1)) %>% # calculate duration
   gather(key = pheno.var, value = value, -plot, -species, -pheno.stage) %>%  # create pheno.var and gather 4 variable into 1 column
   mutate(pheno.var = factor(pheno.var, levels = c("first", "peak", "end", "duration")))
@@ -91,13 +91,15 @@ pheno.long <- pheno.long %>%
   mutate(bf = ifelse(pheno.var == "peak", f-b, NA), fs = ifelse(pheno.var == "peak", s-f, NA), sr = ifelse(pheno.var == "peak", r-s, NA)) %>%
   gather(key = pheno.stage, value = value, b, f, s, r, bf, fs, sr) %>%
   mutate(pheno.unit = ifelse(pheno.var == "duration", "days", ifelse(pheno.var == "peak" & pheno.stage %in% c("bf", "fs", "sr"), "days", "doy"))) %>% # create variable pheno.unit, doy: b,f,s,r, days: duration, bf, fs, sr
-  filter(!is.na(value)) # remove empty rows
+  filter(!is.na(value))%>% # remove empty rows
+  mutate(value = ifelse(value < 0, NA, value)) %>% # replace negative values with NA (e.g. if bud before flowering)
+  mutate(pheno.stage = factor(pheno.stage, levels = c("b", "f", "s", "r", "bf", "fs", "sr"))) %>% 
+  mutate(treatment = ifelse(plot %in% c("1", "2" ,"3", "4", "5", "6"), "Snow", "Control")) 
 
 
-# Rename variables and order
-pheno.long <- pheno.long %>%
-  mutate(block = substring(plot, nchar(plot), nchar(plot))) %>% 
-  mutate(treatment = substring(plot, 1, 2)) %>%
+ggplot(pheno.long, aes(x = treatment, y = value)) +
+  geom_boxplot() +
+  facet_grid(pheno.stage ~ pheno.var)
 
 save(pheno.long, file = "PhenoLong.RData")
 
