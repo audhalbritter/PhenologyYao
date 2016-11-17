@@ -13,6 +13,19 @@ library("readxl")
 #options(warn = 1)
 pheno.dat <- plyr::ldply(1:17, ReadExcelSheets)
 
+### DATA CORRECTION
+# Change ripe seed to bud in week 4, data entered in wrong cell
+pheno.dat$r.20[pheno.dat$plot == "SH-4" & pheno.dat$sp == "Juncus leucomelas Royle ex D. Don" & pheno.dat$week == "4"] <- NA
+pheno.dat$b.17[pheno.dat$plot == "SH-4" & pheno.dat$sp == "Juncus leucomelas Royle ex D. Don" & pheno.dat$week == "4"] <- 1
+
+# Change seed to ripe seed in week 10, data entered in wrong cell
+pheno.dat$s.31[pheno.dat$plot == "GC-5" & pheno.dat$sp == "Aletris pauciflora (Klotzsch) Handel-Mazzetti" & pheno.dat$week == "10"] <- NA
+pheno.dat$r.32[pheno.dat$plot == "GC-5" & pheno.dat$sp == "Aletris pauciflora (Klotzsch) Handel-Mazzetti" & pheno.dat$week == "10"] <- 7
+
+# Delete ripe seed that only occur in week 7 and 8 in subplot 7, probably plants form outsite
+pheno.dat$r.28[pheno.dat$plot == "SH-1" & pheno.dat$sp == "Rhodiola yunnanensis (Franchet) S. H. Fu" & pheno.dat$week == "7"] <- NA
+pheno.dat$r.28[pheno.dat$plot == "SH-1" & pheno.dat$sp == "Rhodiola yunnanensis (Franchet) S. H. Fu" & pheno.dat$week == "8"] <- NA
+
 # Calculate Sums of bud, flower etc.
 pheno <- CalcSums(pheno.dat)
 
@@ -20,6 +33,7 @@ pheno <- pheno %>%
   select(sp, plot, date, week, nr.b, nr.f, nr.s, nr.r) %>% 
   filter(!is.na(sp)) %>% 
   mutate(doy = yday(date)) %>% 
+  # Change plot number
   mutate(plot = plyr::mapvalues(plot, c("SH-9",  "SH-1",  "SH-6",  "SH-2",  "SH-3",  "SH-4",  "GC-1",  "GC-2",  "GC-5",  "GC-10", "GC-9",  "GC-8",  "GC-7"), c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13")))
 
 
@@ -40,22 +54,14 @@ nameAuthority <-plyr::ldply(spNames, function(x){
 
 pheno$species <- paste(sapply(spNames, function(x) x[1]), sapply(spNames, function(x) x[2]), sep = " ")
 head(pheno)
-unique(pheno$species)
-
-# check these species
-# 景天叶Gentiana crassula"
-# "紫晶Primula amethystina"
-
-
-### DATA CORRECTION
 
 
 
 # Check data, make figures for pheno.stages 
 pheno %>% 
   gather(key = pheno.stage, value = value, nr.b, nr.f, nr.s, nr.r) %>% 
-  #filter(plot == "2") %>% 
-  filter(species == "Juncus leucomelas") %>% 
+  filter(plot == "2") %>% 
+  filter(species == "Rhodiola yunnanensis") %>% 
   group_by(species, pheno.stage) %>% 
   ggplot(aes(x = doy, y = value, color = pheno.stage)) +
   geom_line() +
@@ -63,7 +69,7 @@ pheno %>%
 
 
 
-#### CALCULATE FIRST, PEAK, END AND DURATION ####
+#### CALCULATE FIRST, PEAK, END AND DURATION, DAYS BETWEEN FIRST BUD AND FLOWER, FLOWER AND SEED ETC (PHENO.STAGES IN DAYS)####
 ### MAKE LONG DATA SET ###
 pheno.long <- pheno %>%
   gather(key = pheno.stage, value = value, nr.b, nr.f, nr.s, nr.r) %>% # make variable pheno.stage
@@ -75,25 +81,18 @@ pheno.long <- pheno %>%
   filter(first > minDoy) %>% # remove if plant is flowering in the first week
   ungroup() %>% 
   select(-minDoy) %>% # remove this variable
-  #mutate_each(funs(as.numeric), first, peak, end) %>% # make variables numeric (probably not necessary)
   # make the data nice, rename variables and order them
   mutate(pheno.stage = substring(pheno.stage, nchar(pheno.stage), nchar(pheno.stage))) %>%  # take last letter from pheno.stage
   mutate(duration = end - (first-1)) %>% # calculate duration
   gather(key = pheno.var, value = value, -plot, -species, -pheno.stage) %>%  # create pheno.var and gather 4 variable into 1 column
-  mutate(pheno.var = factor(pheno.var, levels = c("first", "peak", "end", "duration")))
-head(pheno.long)
-
-
-
-
-#### CALCULATE DAYS BETWEEN FIRST BUD AND FLOWER, FLOWER AND SEED ETC (PHENO.STAGES IN DAYS) ####
-pheno.long <- pheno.long %>% 
+  mutate(pheno.var = factor(pheno.var, levels = c("first", "peak", "end", "duration"))) %>% 
+  # Calculate days between pheno.vars
   spread(key = pheno.stage, value = value) %>% 
   # calculate difference in days between bud-flower and flower-seed
   mutate(bf = ifelse(pheno.var == "peak", f-b, NA), fs = ifelse(pheno.var == "peak", s-f, NA), sr = ifelse(pheno.var == "peak", r-s, NA)) %>%
   gather(key = pheno.stage, value = value, b, f, s, r, bf, fs, sr) %>%
   mutate(pheno.unit = ifelse(pheno.var == "duration", "days", ifelse(pheno.var == "peak" & pheno.stage %in% c("bf", "fs", "sr"), "days", "doy"))) %>% # create variable pheno.unit, doy: b,f,s,r, days: duration, bf, fs, sr
-  filter(!is.na(value))%>% # remove empty rows
+  filter(!is.na(value)) %>% # remove empty rows
   mutate(value = ifelse(value < 0, NA, value)) %>% # replace negative values with NA (e.g. if bud before flowering)
   mutate(pheno.stage = factor(pheno.stage, levels = c("b", "f", "s", "r", "bf", "fs", "sr"))) %>% 
   mutate(treatment = ifelse(plot %in% c("1", "2" ,"3", "4", "5", "6"), "Snow", "Control")) 
