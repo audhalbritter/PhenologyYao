@@ -47,17 +47,19 @@ unique(pheno$species)
 # "紫晶Primula amethystina"
 
 
+### DATA CORRECTION
+
 
 
 # Check data, make figures for pheno.stages 
 pheno %>% 
   gather(key = pheno.stage, value = value, nr.b, nr.f, nr.s, nr.r) %>% 
-  filter(plot == "SH-4") %>% 
-  #filter(species == "Oxygraphis glacialis") %>% 
+  #filter(plot == "2") %>% 
+  filter(species == "Juncus leucomelas") %>% 
   group_by(species, pheno.stage) %>% 
   ggplot(aes(x = doy, y = value, color = pheno.stage)) +
   geom_line() +
-  facet_wrap(~ species, scales = "free")
+  facet_wrap(~ plot, scales = "free")
 
 
 
