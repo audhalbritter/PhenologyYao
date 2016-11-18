@@ -1,7 +1,10 @@
 #### FIGURES
 
 
-pheno.long %>% 
+pheno.long %>%
+  filter(pheno.stage != "r"& pheno.stage != "sr") %>%
+  #filter(pheno.var %in% c("first", "peak", "end"), pheno.unit == "doy") %>% 
+  #filter(pheno.var %in% c("duration"), pheno.unit == "days") %>% 
   filter(pheno.var %in% c("peak"), pheno.unit == "days") %>% 
   ggplot(aes(x = treatment, y = value)) +
   geom_boxplot() +
