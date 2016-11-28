@@ -60,8 +60,8 @@ head(pheno)
 # Check data, make figures for pheno.stages 
 pheno %>% 
   gather(key = pheno.stage, value = value, nr.b, nr.f, nr.s, nr.r) %>% 
-  filter(plot == "2") %>% 
-  filter(species == "Rhodiola yunnanensis") %>% 
+  #filter(plot == "2") %>% 
+  filter(species == "Rhododendron websterianum") %>% 
   group_by(species, pheno.stage) %>% 
   ggplot(aes(x = doy, y = value, color = pheno.stage)) +
   geom_line() +
@@ -95,7 +95,15 @@ pheno.long <- pheno %>%
   filter(!is.na(value)) %>% # remove empty rows
   mutate(value = ifelse(value < 0, NA, value)) %>% # replace negative values with NA (e.g. if bud before flowering)
   mutate(pheno.stage = factor(pheno.stage, levels = c("b", "f", "s", "r", "bf", "fs", "sr"))) %>% 
-  mutate(treatment = ifelse(plot %in% c("1", "2" ,"3", "4", "5", "6"), "Snow", "Control")) 
+  mutate(treatment = ifelse(plot %in% c("1", "2" ,"3", "4", "5", "6"), "Snow", "Control")) %>% 
+  # Remove species
+  filter(species != "Rhododendron websterianum") %>%  # Rhododendron flowered when observations startet
+  filter(!species %in% c("Anemone demissa", "Gentiana trichotoma", "Kobresia cercostachys", "Parnassia pusilla", "Primula amethystina", "Ranunculus tanguticus", "Veronica rockii")) # only in Snow treatment
+
+
+
+  
+
 
 
 # check species
