@@ -41,19 +41,16 @@ pheno.long %>%
   labs(y = "", x = "Day of the year") +
   geom_segment(aes(x=first, xend=(first+duration), y=species, yend=species),size=1)
 
+
+#### Trait data plots
 PhenologicalStages <- pheno.long %>% 
-  filter(treatment %in% c("OTC", "Control","Warm","Local")) %>% 
-  filter(origSite %in% c("H", "A")) %>% 
-  filter(functionalGroup %in% c("forb", "graminoid")) %>% 
+  filter(pheno.stage != "r"& pheno.stage != "sr") %>%
+  filter(pheno.var == "peak", pheno.unit == "doy") %>% 
+  #filter(functionalGroup %in% c("forb", "graminoid")) %>% 
   #filter(flTime == c("early", "late")) %>%
-  #filter(pheno.stage %in% c("b", "f", "s"), pheno.var == "first") %>% 
-  #filter(pheno.stage %in% c("bf", "fs", "sr")) %>% 
-  filter(pheno.var %in% "duration") %>% 
-  #group_by(species, treatment) %>% 
-  #summarise(mean = mean(value)) %>% 
-  ggplot(aes(x = treatment, y = value, color = functionalGroup)) +
+  ggplot(aes(x = treatment, y = value, color = FunctionalTypes)) +
   geom_boxplot() +
-  facet_grid(origSite~pheno.stage)
+  facet_grid(~pheno.stage)
 
 PhenologicalStages + theme_grey(base_size = 20) + theme(legend.title=element_blank()) + ggtitle("DOY")
 PhenologicalDuration + theme_grey(base_size = 20) + theme(legend.title=element_blank()) + ggtitle("Days")
