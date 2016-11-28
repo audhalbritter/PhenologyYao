@@ -61,7 +61,7 @@ head(pheno)
 pheno %>% 
   gather(key = pheno.stage, value = value, nr.b, nr.f, nr.s, nr.r) %>% 
   #filter(plot == "2") %>% 
-  filter(species == "Rhododendron websterianum") %>% 
+  filter(species == "Salix souliei") %>% 
   group_by(species, pheno.stage) %>% 
   ggplot(aes(x = doy, y = value, color = pheno.stage)) +
   geom_line() +
@@ -101,18 +101,15 @@ pheno.long <- pheno %>%
   filter(!species %in% c("Anemone demissa", "Gentiana trichotoma", "Kobresia cercostachys", "Parnassia pusilla", "Primula amethystina", "Ranunculus tanguticus", "Veronica rockii")) # only in Snow treatment
 
 
-
-  
-
-
-
 # check species
-setdiff(pheno.long$species, trait$sp)
-setdiff(trait$sp, pheno.long$species)
+setdiff(pheno.long$species, trait$SpeciesName)
+setdiff(trait$SpeciesName, pheno.long$species)
 
-# Merge trait data
-pheno.long <- pheno.long %>% left_join(trait, by = c("species" = "sp"))
 
+
+# MERGE TRAIT DATA
+pheno.long <- pheno.long %>% left_join(trait, by = c("species" = "SpeciesName"))
+head(pheno.long)
 
 
 save(pheno.long, file = "PhenoLong.RData")
