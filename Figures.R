@@ -5,7 +5,7 @@
 ##figure 2: duration of bud, flower and seed (unit:days)
 ##figure 3:bf and fs (unit:days),only peak gaps,no first and end
 pheno.long %>%
-  filter(pheno.stage != "r"& pheno.stage != "sr") %>%
+  filter(pheno.stage != "Ripe"& pheno.stage != "SeedRipe") %>%
   #filter(pheno.var %in% c("first", "peak", "end"), pheno.unit == "doy") %>% 
   #filter(pheno.var %in% c("duration"), pheno.unit == "days") %>% 
   filter(pheno.var %in% c("peak"), pheno.unit == "days") %>% 
@@ -44,7 +44,7 @@ pheno.long %>%
 
 #### Trait data plots
 PhenologicalStages <- pheno.long %>% 
-  filter(pheno.stage != "r"& pheno.stage != "sr") %>%
+  filter(pheno.stage != "Ripe"& pheno.stage != "SeedRipe") %>%
   filter(pheno.var == "peak", pheno.unit == "doy") %>% 
   #filter(functionalGroup %in% c("forb", "graminoid")) %>% 
   #filter(flTime == c("early", "late")) %>%
