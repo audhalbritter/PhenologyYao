@@ -2,6 +2,7 @@
 ### ANALYSE PHENOLOGY DATA ###
 ########################################
 
+
 #### LIBRARIES ####
 library("lme4")
 library("tidyr")
@@ -21,9 +22,7 @@ pheno.long %>%
 
 #### Analyse Models
 dat <- pheno.long %>% 
-  mutate(block = substring(plot, nchar(plot), nchar(plot))) %>% 
-  mutate(treatment = substring(plot, 1, 2)) %>% 
-  filter(pheno.stage == "f", pheno.var == "peak")
+  filter(pheno.stage == "Flower", pheno.var == "peak")
 
 
 # fit simple regression/anova
@@ -47,22 +46,21 @@ plot(fit.glm)
 
 
 
-# Mixed Effects Model including block
-fit.glmm <- glmer(value ~ treatment + (1|block), data = dat, family = "poisson")
+# Mixed Effects Model including plot and species as random effects
+fit.glmm <- glmer(value ~ treatment + (1|plot) + (1|species), data = dat, family = "poisson")
+fit.glmm2 <- glmer(value ~ 1 + (1|plot) + (1|species), data = dat, family = "poisson")
 summary(fit.glmm)
 
-# Mixed Effects Model including species
-fit.glmm <- glmer(value ~ treatment + species + (1|block), data = dat, family = "poisson")
-summary(fit.glmm)
-plot(fit.glmm)
 
 # backtransform the data
 newdat <- expand.grid(
-  treatment=c("GC", "SH")
+  treatment=c("Control", "Snow")
   , value = 0
 )
 mm <- model.matrix(terms(fit.glmm), newdat)
 newdat$value <- predict(fit.glmm, newdat, re.form = NA, type="response")
+
+modsel(list(fit.glmm, fit.glmm2), 1000)
 
 ### Test overdispersion
 # compare the residual deviance to the residual degrees of freedom
