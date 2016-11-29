@@ -113,6 +113,8 @@ setdiff(trait$SpeciesName, pheno.long$species)
 
 # MERGE TRAIT DATA
 pheno.long <- pheno.long %>% left_join(trait, by = c("species" = "SpeciesName"))
+
+pheno.long <- pheno.long %>% left_join(flowertime, by = c("species" = "Species"))
 head(pheno.long)
 
 
