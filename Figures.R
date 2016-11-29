@@ -48,7 +48,7 @@ PhenologicalStages <- pheno.long %>%
   filter(pheno.var == "peak", pheno.unit == "doy") %>% 
   #filter(functionalGroup %in% c("forb", "graminoid")) %>% 
   #filter(flTime == c("early", "late")) %>%
-  ggplot(aes(x = treatment, y = value, color = FunctionalTypes)) +
+  ggplot(aes(x = treatment, y = value, color = FloweringClassfication)) +
   geom_boxplot() +
   facet_grid(~pheno.stage)
 
