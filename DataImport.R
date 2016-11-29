@@ -53,6 +53,11 @@ nameAuthority <-plyr::ldply(spNames, function(x){
 })
 
 pheno$species <- paste(sapply(spNames, function(x) x[1]), sapply(spNames, function(x) x[2]), sep = " ")
+
+# Remove species
+pheno <- pheno %>% 
+  filter(species != "Rhododendron websterianum") %>%  # Rhododendron flowered when observations startet
+  filter(!species %in% c("Anemone demissa", "Gentiana trichotoma", "Kobresia cercostachys", "Parnassia pusilla", "Primula amethystina", "Ranunculus tanguticus", "Veronica rockii")) # only in Snow treatment
 head(pheno)
 
 
@@ -94,11 +99,10 @@ pheno.long <- pheno %>%
   mutate(pheno.unit = ifelse(pheno.var == "duration", "days", ifelse(pheno.var == "peak" & pheno.stage %in% c("bf", "fs", "sr"), "days", "doy"))) %>% # create variable pheno.unit, doy: b,f,s,r, days: duration, bf, fs, sr
   filter(!is.na(value)) %>% # remove empty rows
   mutate(value = ifelse(value < 0, NA, value)) %>% # replace negative values with NA (e.g. if bud before flowering)
-  mutate(pheno.stage = factor(pheno.stage, levels = c("b", "f", "s", "r", "bf", "fs", "sr"))) %>% 
-  mutate(treatment = ifelse(plot %in% c("1", "2" ,"3", "4", "5", "6"), "Snow", "Control")) %>% 
-  # Remove species
-  filter(species != "Rhododendron websterianum") %>%  # Rhododendron flowered when observations startet
-  filter(!species %in% c("Anemone demissa", "Gentiana trichotoma", "Kobresia cercostachys", "Parnassia pusilla", "Primula amethystina", "Ranunculus tanguticus", "Veronica rockii")) # only in Snow treatment
+  mutate(pheno.stage = plyr::mapvalues(pheno.stage, c("b", "f", "s", "r", "bf", "fs", "sr"), c("Bud", "Flower", "Seed", "Ripe", "BudFlower", "FlowerSeed", "SeedRipe"))) %>% 
+  mutate(pheno.stage = factor(pheno.stage, levels = c("Bud", "Flower", "Seed", "Ripe", "BudFlower", "FlowerSeed", "SeedRipe"))) %>% 
+  mutate(treatment = ifelse(plot %in% c("1", "2" ,"3", "4", "5", "6"), "Snow", "Control"))
+
 
 
 # check species
