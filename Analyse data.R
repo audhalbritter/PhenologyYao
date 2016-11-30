@@ -2,7 +2,6 @@
 ### ANALYSE PHENOLOGY DATA ###
 ########################################
 
-
 #### LIBRARIES ####
 library("lme4")
 library("tidyr")
@@ -19,38 +18,16 @@ pheno.long %>%
   facet_grid(pheno.stage ~ pheno.var, scales = "free_y")
 
 
-
 #### Analyse Models
-dat <- pheno.long %>% 
-  filter(pheno.stage == "Flower", pheno.var == "peak")
-
-
-# fit simple regression/anova
-fit.lm <- lm(value ~ treatment, data = dat)
-anova(fit.lm)
+dat <- pheno.long %>% filter(pheno.stage == "FlowerSeed", pheno.var == "peak")
 hist(dat$value)
-par(mfrow=c(1,1))
-plot(fit.lm)
-
-
-# log transform
-fit <- lm(log(value) ~ treatment, data = dat)
-anova(fit)
-hist(log(dat$value))
-
-
-# GLM for count data
-fit.glm <- glm(value ~ treatment, data = dat, family = "poisson")
-summary(fit.glm)
-plot(fit.glm)
-
-
 
 # Mixed Effects Model including plot and species as random effects
 fit.glmm <- glmer(value ~ treatment + (1|plot) + (1|species), data = dat, family = "poisson")
 fit.glmm2 <- glmer(value ~ 1 + (1|plot) + (1|species), data = dat, family = "poisson")
 summary(fit.glmm)
-
+overdisp_fun(fit.glmm)
+modsel(list(fit.glmm, fit.glmm2), 1000)
 
 # backtransform the data
 newdat <- expand.grid(
@@ -59,8 +36,29 @@ newdat <- expand.grid(
 )
 mm <- model.matrix(terms(fit.glmm), newdat)
 newdat$value <- predict(fit.glmm, newdat, re.form = NA, type="response")
+newdat
 
-modsel(list(fit.glmm, fit.glmm2), 1000)
+
+### Overdispersion
+dat <- pheno.long %>% filter(pheno.stage == "Flower", pheno.var == "duration")
+dat$observation <- 1:nrow(dat)
+
+fit.glmm.od <- glmer(value ~ treatment + (1|plot) + (1|species) + (1|observation), data = dat, family = "poisson")
+fit.glmm.od2 <- glmer(value ~ 1 + (1|plot) + (1|species) + (1|observation), data = dat, family = "poisson")
+summary(fit.glmm.od)
+overdisp_fun(fit.glmm.od)
+modsel(list(fit.glmm.od, fit.glmm.od2), 1000)
+
+# backtransform the data
+newdat <- expand.grid(
+  treatment=c("Control", "Snow")
+  , value = 0
+)
+newdat$value <- predict(fit.glmm.od, newdat, re.form = NA, type="response")
+newdat
+
+
+#### FUNCTIONS
 
 ### Test overdispersion
 # compare the residual deviance to the residual degrees of freedom
@@ -80,7 +78,7 @@ overdisp_fun <- function(model) {
   pval <- pchisq(Pearson.chisq, df=rdf, lower.tail=FALSE)
   c(chisq=Pearson.chisq,ratio=prat,rdf=rdf,p=pval)
 }
-overdisp_fun(fit.glmm)
+
 
 
 #function for QAICc. NB, phi is the scaling parameter from the quasi-family model. If using e.g. a poisson family, phi=1 and QAICc returns AICc, or AIC if QAICc=FALSE.
@@ -116,6 +114,6 @@ modsel <- function(mods,x){
 fit.glmm1 <- glmer(value ~ treatment + (1|block) + (1|species), data = dat, family = "poisson")
 fit.glmm2 <- glmer(value ~ 1 + (1|block) + (1|species), data = dat, family = "poisson")
 
-modsel(list(fit.glmm1, fit.glmm2), 1000)
+
 
 
