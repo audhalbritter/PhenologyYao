@@ -19,7 +19,7 @@ pheno.long %>%
 
 
 #### Analyse Models
-dat <- pheno.long %>% filter(pheno.stage == "FlowerSeed", pheno.var == "peak")
+dat <- pheno.long %>% filter(pheno.stage == "Bud", pheno.var == "peak") %>% mutate(treatment = factor(treatment), plot = factor(plot), species = factor(species))
 hist(dat$value)
 
 # Mixed Effects Model including plot and species as random effects
@@ -34,13 +34,11 @@ newdat <- expand.grid(
   treatment=c("Control", "Snow")
   , value = 0
 )
-mm <- model.matrix(terms(fit.glmm), newdat)
 newdat$value <- predict(fit.glmm, newdat, re.form = NA, type="response")
 newdat
 
 
 ### Overdispersion
-dat <- pheno.long %>% filter(pheno.stage == "Flower", pheno.var == "duration")
 dat$observation <- 1:nrow(dat)
 
 fit.glmm.od <- glmer(value ~ treatment + (1|plot) + (1|species) + (1|observation), data = dat, family = "poisson")
@@ -109,11 +107,6 @@ modsel <- function(mods,x){
   print(dds <- dd[order(dd$QAIC), ])
   assign("mstable",dd,envir=.GlobalEnv)
 }
-
-# Test if treatment is important using model selection
-fit.glmm1 <- glmer(value ~ treatment + (1|block) + (1|species), data = dat, family = "poisson")
-fit.glmm2 <- glmer(value ~ 1 + (1|block) + (1|species), data = dat, family = "poisson")
-
 
 
 
