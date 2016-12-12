@@ -118,16 +118,13 @@ pheno.long <- pheno.long %>% left_join(trait, by = c("species" = "SpeciesName"))
 pheno.long <- pheno.long %>% left_join(flowertime, by = c("species" = "Species"))
 head(pheno.long)
 
-
-
-
 save(pheno.long, file = "PhenoLong.RData")
 
 
-
 # Climate data
-pheno.long <- pheno.long %>% mutate(climateID = paste(destSite, value, sep = "_"))
-pheno.long <- pheno.long %>% left_join(CumSum2016, by = "climateID") %>% select(-site, -dateDaily, -n, -mean, -doy)
+pheno.long <- pheno.long %>% 
+  left_join(CumTemp, by = c("value" = "doy", "treatment" = "distance")) %>% 
+  mutate(CumTemp = ifelse(pheno.unit == "days", NA, CumTemp))
 
 
 
