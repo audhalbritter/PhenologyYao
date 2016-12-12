@@ -24,10 +24,10 @@ pheno.long %>%
 ##figure 4 flower(peak) - duration
 ##figure 6 seed(peak) - duration
 ##figure 7 
-ddd <- pheno.long %>% 
+pheno.long %>% 
   #filter(functionalGroup == "forb") %>% 
   #filter(flTime == "early") %>% #needn't
-  filter(pheno.stage %in% c("Seed"), pheno.var %in% c("first", "peak", "duration")) %>% 
+  filter(pheno.stage %in% c("Flower"), pheno.var %in% c("first", "peak", "duration")) %>% 
   #filter(pheno.stage %in% c("b"), pheno.var %in% c("first", "peak", "duration")) %>% 
   #filter(pheno.stage %in% c("s"), pheno.var %in% c("first", "peak", "duration")) %>% 
   #filter(pheno.var %in% "duration") %>% 
@@ -42,9 +42,10 @@ ddd <- pheno.long %>%
   #mutate(sp.num = ifelse(sp.num == 3, 5, sp.num)) %>% 
   mutate(sp.num = ifelse(treatment == "Snow", sp.num + 0.2, sp.num)) %>% 
   ggplot(aes(y = peak, x = sp.num, color = treatment)) + geom_point(size = 2) +
-  scale_x_discrete(limits = c(1,  2,  3,  4,  6,  7,  8,  9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22), labels = c("Agrostis sinorupestris", "Aletris pauciflora", "Androsace minor",  "Aster asteroides", "Cyananthus incanus",  "Deyeuxia pulchella",  "Euphorbia sp", "Galearis spathulata",  "Gentiana crassula", "Juncus leucanthus", "Juncus leucomelas", "Kobresia sp", "Pedicularis rhodotricha", "Polygonum macrophyllum", "Polygonum viviparum", "Potentilla stenophylla", "Rhodiola fastigiata", "Rhodiola yunnanensis", "Salix souliei", "Tanacetum tatsienense")) +
-  #scale_x_discrete(limits = c(5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20), labels = c("Androsace minor",  "Cyananthus incanus",  "Deyeuxia pulchella",  "Galearis spathulata",  "Gentiana crassula", "Juncus leucanthus", "Juncus leucomelas", "Kobresia sp", "Pedicularis rhodotricha", "Polygonum macrophyllum", "Polygonum viviparum", "Potentilla stenophylla", "Rhodiola fastigiata", "Rhodiola yunnanensis", "Salix souliei", "Tanacetum tatsienense")) +
+  #scale_x_discrete(limits = c(1,  2,  3,  4,  6,  7,  8,  9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22), labels = c("Agrostis sinorupestris", "Aletris pauciflora", "Androsace minor",  "Aster asteroides", "Cyananthus incanus",  "Deyeuxia pulchella",  "Euphorbia sp", "Galearis spathulata",  "Gentiana crassula", "Juncus leucanthus", "Juncus leucomelas", "Kobresia sp", "Pedicularis rhodotricha", "Polygonum macrophyllum", "Polygonum viviparum", "Potentilla stenophylla", "Rhodiola fastigiata", "Rhodiola yunnanensis", "Salix souliei", "Tanacetum tatsienense")) +
+  scale_x_discrete(limits = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16), labels = c("Androsace minor",  "Cyananthus incanus",  "Deyeuxia pulchella",  "Galearis spathulata",  "Gentiana crassula", "Juncus leucanthus", "Juncus leucomelas", "Kobresia sp", "Pedicularis rhodotricha", "Polygonum macrophyllum", "Polygonum viviparum", "Potentilla stenophylla", "Rhodiola fastigiata", "Rhodiola yunnanensis", "Salix souliei", "Tanacetum tatsienense")) +
   labs(x = "", y = "Day of the year") +
+  ggtitle("Peak and duration of flowering") +
   geom_segment(aes(y=first, yend=(first+duration), x=sp.num, xend=sp.num), size = 1.2) +
   coord_flip() + theme_bw(base_size = 14)
 
