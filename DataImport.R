@@ -57,7 +57,7 @@ pheno$species <- paste(sapply(spNames, function(x) x[1]), sapply(spNames, functi
 # Remove species
 pheno <- pheno %>% 
   filter(species != "Rhododendron websterianum") %>%  # Rhododendron flowered when observations startet
-  filter(!species %in% c("Anemone demissa", "Gentiana trichotoma", "Kobresia cercostachys", "Parnassia pusilla", "Primula amethystina", "Ranunculus tanguticus", "Veronica rockii")) # only in Snow treatment
+  filter(!species %in% c("Anemone demissa", "Gentiana trichotoma", "Kobresia cercostachys", "Parnassia pusilla", "Primula amethystina", "Ranunculus tanguticus", "Veronica rockii", "Agrostis sinorupestris", "Aletris pauciflora", "Aster asteroides", "Astragalus skythropos", "Oxygraphis glacialis")) # Species occur only in Snow or Control
 head(pheno)
 
 
@@ -105,6 +105,7 @@ pheno.long <- pheno %>%
 
 
 
+
 # check species
 setdiff(pheno.long$species, trait$SpeciesName)
 setdiff(trait$SpeciesName, pheno.long$species)
@@ -116,6 +117,8 @@ pheno.long <- pheno.long %>% left_join(trait, by = c("species" = "SpeciesName"))
 
 pheno.long <- pheno.long %>% left_join(flowertime, by = c("species" = "Species"))
 head(pheno.long)
+
+
 
 
 save(pheno.long, file = "PhenoLong.RData")
