@@ -127,4 +127,9 @@ pheno.long <- pheno.long %>%
   mutate(CumTemp = ifelse(pheno.unit == "days", NA, CumTemp))
 
 
+pheno %>% 
+  mutate(treatment = ifelse(plot %in% c("1", "2" ,"3", "4", "5", "6"), "Snow", "Control")) %>%
+  group_by(doy, species, treatment) %>% 
+  summarize(mean = mean(nr.s)) %>% 
+  ggplot(aes(x = doy, y = mean, color = treatment)) + geom_point() + facet_wrap(~ species)
 
