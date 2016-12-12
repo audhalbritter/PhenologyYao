@@ -49,6 +49,26 @@ pheno.long %>%
   geom_segment(aes(y=first, yend=(first+duration), x=sp.num, xend=sp.num), size = 1.2) +
   coord_flip() + theme_bw(base_size = 14)
 
+##Make figures for Duration of peak FlowerSeed
+pheno.long %>% 
+  filter(pheno.stage %in% c("Flower","FlowerSeed"), pheno.var %in% c("peak")) %>% 
+  mutate(species = factor(species)) %>% 
+  group_by(species, treatment, pheno.var, pheno.stage) %>% 
+  summarise(mean = mean(value)) %>% 
+  spread(key = treatment, value = mean) %>% 
+  na.omit() %>% 
+  gather(key = treatment, value = value, -species, -pheno.var, -pheno.stage) %>% 
+  spread(key = pheno.stage, value = value) %>% 
+  mutate(sp.num = as.numeric(species)) %>% 
+  #mutate(sp.num = ifelse(sp.num == 3, 5, sp.num)) %>% 
+  mutate(sp.num = ifelse(treatment == "Snow", sp.num + 0.2, sp.num)) %>% 
+  ggplot(aes(y = Flower, x = sp.num, color = treatment)) + geom_point(size = 2) +
+  scale_x_discrete(limits = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16), labels = c("Androsace minor",  "Cyananthus incanus",  "Deyeuxia pulchella",  "Galearis spathulata",  "Gentiana crassula", "Juncus leucanthus", "Juncus leucomelas", "Kobresia sp", "Pedicularis rhodotricha", "Polygonum macrophyllum", "Polygonum viviparum", "Potentilla stenophylla", "Rhodiola fastigiata", "Rhodiola yunnanensis", "Salix souliei", "Tanacetum tatsienense")) +
+  labs(x = "", y = "Days") +
+  ggtitle("Duration of Peak FlowerSeed") +
+  geom_segment(aes(y=Flower, yend=(Flower+FlowerSeed), x=sp.num, xend=sp.num), size = 1.2) +
+  coord_flip() + theme_bw(base_size = 14)
+ 
 
 #### Trait data plots
 PhenologicalStages <- pheno.long %>% 
