@@ -19,15 +19,23 @@ pheno.long %>%
 
 
 #### Analyse Models
-dat <- pheno.long %>% filter(pheno.stage == "Bud", pheno.var == "peak") %>% mutate(treatment = factor(treatment), plot = factor(plot), species = factor(species))
+dat <- pheno.long %>% filter(pheno.stage == "Flower", pheno.var == "peak") %>% mutate(treatment = factor(treatment), plot = factor(plot), species = factor(species))
 hist(dat$value)
 
-# Mixed Effects Model including plot and species as random effects
-fit.glmm <- glmer(value ~ treatment + (1|plot) + (1|species), data = dat, family = "poisson")
+fit.glmm1 <- glmer(value ~ treatment + (1|plot) + (1|species), data = dat, family = "poisson")
 fit.glmm2 <- glmer(value ~ 1 + (1|plot) + (1|species), data = dat, family = "poisson")
-summary(fit.glmm)
-overdisp_fun(fit.glmm)
 modsel(list(fit.glmm, fit.glmm2), 1000)
+
+# Mixed Effects Model including plot and species as random effects
+fit.glmm1 <- glmer(value ~ treatment * species + (1|plot), data = dat, family = "poisson")
+fit.glmm2 <- glmer(value ~ treatment + species + (1|plot), data = dat, family = "poisson")
+fit.glmm3 <- glmer(value ~ treatment + (1|plot), data = dat, family = "poisson")
+fit.glmm4 <- glmer(value ~ species + (1|plot), data = dat, family = "poisson")
+fit.glmm5 <- glmer(value ~ 1 + (1|plot), data = dat, family = "poisson")
+
+summary(fit.glmm1)
+overdisp_fun(fit.glmm1)
+modsel(list(fit.glmm, fit.glmm2, fit.glmm3, fit.glmm4, fit.glmm5), 1000)
 
 # backtransform the data
 newdat <- expand.grid(
@@ -41,7 +49,7 @@ newdat
 ### Overdispersion
 dat$observation <- 1:nrow(dat)
 
-fit.glmm.od <- glmer(value ~ treatment + (1|plot) + (1|species) + (1|observation), data = dat, family = "poisson")
+fit.glmm.od <- glmer(value ~ treatment * species + (1|plot) + (1|observation), data = dat, family = "poisson")
 fit.glmm.od2 <- glmer(value ~ 1 + (1|plot) + (1|species) + (1|observation), data = dat, family = "poisson")
 summary(fit.glmm.od)
 overdisp_fun(fit.glmm.od)
