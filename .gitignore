@@ -3,7 +3,9 @@
 .RData
 *.Rproj
 *.jpeg
+*.jpg
 *.pdf
 *.png
 *.xls
 *.xlsx
+*.docx
