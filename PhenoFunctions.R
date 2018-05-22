@@ -7,7 +7,7 @@ ReadExcelSheets <- function(sheet){
   print(sheet) # to check which wheet is read in, can be removed
   dat <- read_excel("2016_phenology data_Snow Fence.xlsx", sheet = sheet, skip = 1, col_names = FALSE) # read excel file
   dat <- dat[,-1] # remove first column with chinese names
-  metainfo <- grep("^Site", dat$X1) # grap all rows including metainfo for each plot (site, date, week, etc)
+  metainfo <- grep("^Site", dat$X__2) # grap all rows including metainfo for each plot (site, date, week, etc)
   print(diff(metainfo)) # check the rownumbers for metainfo
   metainfo2 <- data.frame(start = metainfo, end = c(metainfo[-1] -1, nrow(dat))) # create a dataframe with start and end of each plot
   
@@ -15,7 +15,7 @@ ReadExcelSheets <- function(sheet){
   dat2 <- plyr::adply(metainfo2, 1, function(i){
     x <- dat[(i$start + 2):i$end, ] # extract phenology data
     colnames(x) <- c("sp", "Notes", paste(rep(c("b", "f", "s", "r"), 9), c(1:36), sep = ".")) # give new names
-    kk <- dat$X1[i$start] # metainfo
+    kk <- dat$X__2[i$start] # metainfo
     # use regular expression to extract metainfo
     x$plot <- gsub("Site *. *(\\S*).*", "\\1", kk)
     x$date <- lubridate::ymd(gsub(".*Date *. *(\\S*).*", "\\1", kk))
@@ -25,6 +25,11 @@ ReadExcelSheets <- function(sheet){
   })
   dat2 <- dat2[,-(1:2)]
 }
+
+
+x$date <- lubridate::ymd(gsub(".*Date *. *(\\S*).*", "\\1", kk))
+x$week <- gsub(".*Week *. *(\\S*).*", "\\1", kk)
+x$photonumber <- gsub(".*Photo numer *. *(\\S*).*", "\\1", kk)
 
 
 
