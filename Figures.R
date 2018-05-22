@@ -24,7 +24,7 @@ pheno.long %>%
 ##figure 4 flower(peak) - duration
 ##figure 6 seed(peak) - duration
 ##figure 7 
-pheno.long %>% 
+PhenoFlower <- pheno.long %>% 
   #filter(functionalGroup == "forb") %>% 
   #filter(flTime == "early") %>% #needn't
   filter(pheno.stage %in% c("Flower"), pheno.var %in% c("first", "peak", "duration")) %>% 
@@ -47,11 +47,35 @@ pheno.long %>%
   labs(x = "", y = "Day of the year") +
   ggtitle("Peak and duration of flowering") +
   geom_segment(aes(y=first, yend=(first+duration), x=sp.num, xend=sp.num), size = 1.2) +
+  scale_color_manual(values = c("grey", "blue")) +
   coord_flip() + theme_bw(base_size = 14)
+ggsave(PhenoFlower, filename = "Figures/PhenoFlower.jpg", width = 6, height = 8, dpi = 300)
+
 
 ##Make figures for Duration of peak FlowerSeed
-pheno.long %>% 
-  filter(pheno.stage %in% c("Flower","FlowerSeed"), pheno.var %in% c("peak")) %>% 
+PhenoSeed <- pheno.long %>% 
+  filter(pheno.stage %in% c("Seed"), pheno.var %in% c("first", "peak", "duration")) %>% 
+  mutate(species = factor(species)) %>% 
+  group_by(species, treatment, pheno.var, pheno.stage) %>% 
+  summarise(mean = mean(value)) %>% 
+  spread(key = treatment, value = mean) %>% 
+  na.omit() %>% 
+  gather(key = treatment, value = value, -species, -pheno.var, -pheno.stage) %>% 
+  spread(key = pheno.var, value = value) %>% 
+  mutate(sp.num = as.numeric(species)) %>% 
+  mutate(sp.num = ifelse(treatment == "Snow", sp.num + 0.2, sp.num)) %>% 
+  ggplot(aes(y = peak, x = sp.num, color = treatment)) + geom_point(size = 2) +
+  scale_x_discrete(limits = c(1,  2,  3,  4,  6,  7,  8,  9, 10, 11, 12, 13, 15, 16, 17), labels = c("Androsace minor",  "Cyananthus incanus",  "Deyeuxia pulchella",  "Euphorbia NA", "Galearis spathulata", "Gentiana crassula", "Juncus leucanthus", "Juncus leucomelas", "Kobresia NA", "Pedicularis rhodotricha", "Polygonum macrophyllum", "Polygonum viviparum", "Potentilla stenophylla", "Rhodiola fastigiata", "Rhodiola yunnanensis", "Salix souliei", "Tanacetum tatsienense")) +
+  labs(x = "", y = "Day of the year") +
+  ggtitle("Peak and duration of flowering") +
+  geom_segment(aes(y=first, yend=(first+duration), x=sp.num, xend=sp.num), size = 1.2) +
+  scale_color_manual(values = c("grey", "blue")) +
+  coord_flip() + theme_bw(base_size = 14)
+ggsave(PhenoFlower, filename = "Figures/PhenoFlower.jpg", width = 6, height = 8, dpi = 300)
+
+
+PhenoSeed <- pheno.long %>% 
+  filter(pheno.stage %in% c("Seed"), pheno.var %in% c("peak", "duration")) %>% 
   mutate(species = factor(species)) %>% 
   group_by(species, treatment, pheno.var, pheno.stage) %>% 
   summarise(mean = mean(value)) %>% 
@@ -62,13 +86,30 @@ pheno.long %>%
   mutate(sp.num = as.numeric(species)) %>% 
   #mutate(sp.num = ifelse(sp.num == 3, 5, sp.num)) %>% 
   mutate(sp.num = ifelse(treatment == "Snow", sp.num + 0.2, sp.num)) %>% 
-  ggplot(aes(y = Flower, x = sp.num, color = treatment)) + geom_point(size = 2) +
+  ggplot(aes(y = Seed, x = sp.num, color = treatment)) + geom_point(size = 2) +
   scale_x_discrete(limits = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16), labels = c("Androsace minor",  "Cyananthus incanus",  "Deyeuxia pulchella",  "Galearis spathulata",  "Gentiana crassula", "Juncus leucanthus", "Juncus leucomelas", "Kobresia sp", "Pedicularis rhodotricha", "Polygonum macrophyllum", "Polygonum viviparum", "Potentilla stenophylla", "Rhodiola fastigiata", "Rhodiola yunnanensis", "Salix souliei", "Tanacetum tatsienense")) +
   labs(x = "", y = "Days") +
   ggtitle("Duration of Peak FlowerSeed") +
   geom_segment(aes(y=Flower, yend=(Flower+FlowerSeed), x=sp.num, xend=sp.num), size = 1.2) +
+  scale_color_manual(values = c("grey", "blue")) +
   coord_flip() + theme_bw(base_size = 14)
- 
+ggsave(PhenoSeed, filename = "Figures/PhenoSeed.jpg", width = 6, height = 8, dpi = 300) 
+
+pheno.long %>% 
+  filter(pheno.unit == "doy", pheno.stage %in% c("Flower"), pheno.var == "peak") %>% 
+  ggplot(aes(x = value)) +
+  geom_histogram() +
+  facet_wrap(~ species)
+
+dfPheno <- pheno.long %>% 
+  filter(pheno.unit == "doy", pheno.stage %in% c("Flower", "Seed"), pheno.var %in% c("peak", "first")) %>% 
+  group_by(species, pheno.var, pheno.stage) %>% 
+  do(fit = lm(value ~ treatment, data = .))
+
+
+tidy(dfPheno, fit) %>% 
+  filter(p.value <= 0.05, term != "(Intercept)") %>% pn
+
 
 #### Trait data plots
 PhenologicalStages <- pheno.long %>% 
