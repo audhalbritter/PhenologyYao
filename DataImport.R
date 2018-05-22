@@ -8,6 +8,7 @@ library("lubridate")
 library("ggplot2")
 library("readxl")
 
+source("PhenoFunctions.R")
 
 #### READ IN DATA ####
 #options(warn = 1)
@@ -27,6 +28,8 @@ pheno.dat$r.28[pheno.dat$plot == "SH-1" & pheno.dat$sp == "Rhodiola yunnanensis 
 pheno.dat$r.28[pheno.dat$plot == "SH-1" & pheno.dat$sp == "Rhodiola yunnanensis (Franchet) S. H. Fu" & pheno.dat$week == "8"] <- NA
 
 # Calculate Sums of bud, flower etc.
+pheno.dat <- pheno.dat %>% 
+  mutate(s.35 = as.numeric(s.35))
 pheno <- CalcSums(pheno.dat)
 
 pheno <- pheno %>% 
